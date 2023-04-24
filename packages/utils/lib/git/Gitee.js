@@ -11,7 +11,9 @@ class Gitee extends GitServer {
             timeout: 5000
         })
         this.service.interceptors.request.use(
-            config => config,
+            config => {
+                return config
+            },
             error => Promise.reject(error)
         )
         this.service.interceptors.response.use(
@@ -34,19 +36,19 @@ class Gitee extends GitServer {
         })
     }
 
+    // post(url, data, headers) {
+    //     return this.service({
+    //         url,
+    //         data,
+    //         headers,
+    //         method: 'post'
+    //     })
+    // }
 
-    post(url, data, headers) {
-        return this.service({
-            url,
-            data,
-            headers,
-            method: 'post'
-        })
+    searchRepositories(params) {
+        return this.get('/search/repositories', params)
     }
 
-    searchRepositories(url, params) {
-        return this.get(url, params)
-    }
 }
 
 export default Gitee
