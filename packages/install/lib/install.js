@@ -7,6 +7,9 @@ const PLAT_GITEE_VAL = 'gitee'
 const SEARCH_MODE_PROP = 'repositories'
 const SEARCH_MODE_CODE = 'code'
 
+// TODO: 根据总数量计算页数，先给默认值10
+const TOTAL_PAGE = 10
+
 const GITEE_LANGUAGES = ['Java', 'JavaScript', 'TypeScript', 'HTML', 'CSS']
 const GITHUB_LANGUAGES = ['java', 'javascript', 'typeScript', 'html', 'css']
 
@@ -69,8 +72,9 @@ class InstallCommand extends Command {
     this.mode = mode
     this.platform = platform
 
-    this.searchPage = opts.page ?? 1
-    this.searchPagesize = opts.pagesize ?? 5
+    this.searchPage = opts.page || 1
+
+    this.tagsPage = opts.page || 1
   }
 
   async searchGitApi(opts) {
@@ -97,7 +101,7 @@ class InstallCommand extends Command {
     if (this.searchPage > 1) {
       list.push({ name: '上一页', value: 'prev' })
     }
-    if (this.searchPage <= 10) {
+    if (this.searchPage <= TOTAL_PAGE) {
       list.push({ name: '下一页', value: 'next' })
     }
     let keyword = await makeList({
@@ -109,6 +113,14 @@ class InstallCommand extends Command {
     else if (keyword === 'prev') {
       await this.prevSearchPage(params)
     }
+    this.keyword = keyword
+    await this.doInstall({ ...params, keyword })
+  }
+
+  async doInstall(params) {
+    const tag = await this.getRepositoryTag(params)
+    console.log('tag', tag)
+    return []
   }
 
   async getInputQuery() {
@@ -140,22 +152,21 @@ class InstallCommand extends Command {
   }
 
   async doSearchRepositories(params) {
-    const { sort, pagesize, page, q, language } = params
+    const { sort, pagesize, q, language } = params
     if (this.platform === PLAT_GITEE_VAL) {
       params = { ...params, sort: `${sort}_count`, per_page: pagesize }
     }
     else if (this.platform === PLAT_GITHUB_VAL) {
-      params = { ...params, per_page: pagesize, page: page, q: `${q}+language:${language}` }
+      params = { ...params, per_page: pagesize, q: `${q}+language:${language}` }
     }
-    console.log('doSearchRepositories params', params)
     let searchResult = await this.gitApi.searchRepositories(params)
     if (this.platform === PLAT_GITHUB_VAL) {
       searchResult = searchResult.items
     }
     return searchResult.map(item => {
       return {
-        name: `${item.full_name}(${item.description})`,
-        value: item.id
+        name: `${item.full_name} (${item.description})`,
+        value: item.full_name
       }
     })
   }
@@ -172,10 +183,43 @@ class InstallCommand extends Command {
 
     return searchResult.map(item => {
       return {
-        name: `${item.repository.full_name}(${item.repository.description})`,
-        value: item.repository.id
+        name: `${item.repository.full_name} (${item.repository.description})`,
+        value: item.repository.full_name
       }
     })
+  }
+
+  async getRepositoryTag(params) {
+
+    let tags;
+    const { keyword, pagesize, q, language } = params
+    if (this.platform === PLAT_GITEE_VAL) {
+      tags = await this.gitApi.getReposTags(keyword)
+    }
+    else if (this.platform === PLAT_GITHUB_VAL) {
+      tags = await this.gitApi.getReposTags(keyword, { per_page: pagesize, q: `${q}+language:${language}` })
+    }
+    const choices = tags.map((t) => ({ name: t.name, value: t.name }))
+    
+    // Github 可分页 
+    if (this.platform === PLAT_GITHUB_VAL) {
+      if (this.tagsPage > 1) {
+        choices.push({ name: '上一页', value: 'prev' })
+      }
+      if (this.tagsPage <= TOTAL_PAGE) {
+        choices.push({ name: '下一页', value: 'next' })
+      }
+    }
+    const tag = await makeList({
+      choices,
+      message: '请选择仓库版本'
+    })
+    if (tag === 'next') {
+      await this.nextTagsPage(params)
+    } else if (tag === 'prev') {
+      await this.prevTagsPage(params)
+    }
+    return tag
   }
 
   async nextSearchPage(params) {
@@ -186,6 +230,16 @@ class InstallCommand extends Command {
   async prevSearchPage(params) {
     this.searchPage -= 1
     await this.doSearch({ ...params, page: this.searchPage })
+  }
+
+  async nextTagsPage(params) {
+    this.tagsPage += 1
+    await this.getRepositoryTag({ ...params, page: this.tagsPage })
+  }
+
+  async prevTagsPage(params) {
+    this.tagsPage -= 1
+    await this.getRepositoryTag({ ...params, page: this.tagsPage })
   }
 
   resetGitApi() {

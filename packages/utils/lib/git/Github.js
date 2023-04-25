@@ -53,6 +53,11 @@ class Github extends GitServer {
     searchCode(params) {
         return this.get('/search/code', params)
     }
+
+    getReposTags(fullName, params) {
+        //   https://api.github.com/repos/OWNER/REPO/git/tags/TAG_SHA
+        return this.get(`/repos/${fullName}/tags`, params)
+    }
 }
 
 export default Github
