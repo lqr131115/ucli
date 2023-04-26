@@ -124,9 +124,14 @@ export default async function createTemplate(name, options) {
             throw new Error(`项目模板:${addTemplate} 不存在!`)
         }
         // 获取最新的版本号 先注释掉(请求超时)
-        // const latestVersion = await getLatestVersion(selectedTemp.npmName)
-        // selectedTemp.version = latestVersion
-        selectedTemp.version = 'latest'
+
+        try {
+            // const latestVersion = await getLatestVersion(selectedTemp.npmName)
+            // selectedTemp.version = latestVersion
+            selectedTemp.version = 'latest'
+        } catch (error) {
+            printErrorLog(error)
+        }
 
         // C:\Users\admin\ucli-cache\template
         const targetPath = makeTargetPath()

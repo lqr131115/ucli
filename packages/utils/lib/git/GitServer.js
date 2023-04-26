@@ -79,6 +79,14 @@ class GitServer {
         }
     }
 
+    async installDep(path) {
+        return await execa('npm', ['install', '--registry=http://registry.npmmirror.com'], { cwd: path, stdout: 'inherit' })
+    }
+
+    async runRepo(path, type) {
+        return await execa('npm', ['run', type], { cwd: path, stdout: 'inherit' })
+    }
+
 }
 
 export {

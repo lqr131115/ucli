@@ -1,5 +1,8 @@
-import Command from '@e.ucli/command';
+import path from 'node:path';
 import ora from 'ora'
+import fse from 'fs-extra'
+import { pathExistsSync } from 'path-exists'
+import Command from '@e.ucli/command';
 import { log, makeList, Github, Gitee, getPlatform, removeGitCacheFile, createGitCacheFile, makeInput, printErrorLog } from '@e.ucli/utils';
 
 const PLAT_GITHUB_VAL = 'github'
@@ -40,6 +43,8 @@ class InstallCommand extends Command {
     }
     await this.initGitApi(opts)
     await this.searchGitApi(opts)
+    await this.installRepo({ ...opts, keyword: this.keyword, q: this.q, language: this.language })
+
   }
 
   async initGitApi(opts) {
@@ -74,7 +79,6 @@ class InstallCommand extends Command {
     this.platform = platform
 
     this.searchPage = opts.page || 1
-
     this.tagsPage = opts.page || 1
   }
 
@@ -82,6 +86,8 @@ class InstallCommand extends Command {
     const { q, language } = await this.getInputQuery()
     const params = { ...opts, q, language }
     await this.doSearch(params)
+    this.q = q
+    this.language = language
   }
 
   async doSearch(params) {
@@ -115,15 +121,6 @@ class InstallCommand extends Command {
       await this.prevSearchPage(params)
     }
     this.keyword = keyword
-    await this.doInstall({ ...params, keyword })
-  }
-
-  async doInstall(params) {
-    const tag = await this.getRepositoryTag(params)
-    const spanner = ora('正在克隆中...').start()
-    const data = await this.gitApi.cloneRepo(this.keyword, tag)
-    spanner.stop()
-    console.log(data);
   }
 
   async getInputQuery() {
@@ -190,6 +187,46 @@ class InstallCommand extends Command {
         value: item.repository.full_name
       }
     })
+  }
+
+  async installRepo(params) {
+    let spanner;
+    const tag = await this.getRepositoryTag(params)
+    try {
+      const repoName = this.keyword.split('/').pop()
+      const repoPath = path.resolve(process.cwd(), repoName)
+      if (pathExistsSync(repoPath)) {
+        throw new Error(`项目 ${repoName} 已存在`)
+      }
+      spanner = ora('项目克隆中...').start()
+      await this.gitApi.cloneRepo(this.keyword, tag)
+      spanner.stop()
+
+      // // 自动安装依赖
+      // if (pathExistsSync) {
+      //   spanner = ora('项目依赖安装中...').start()
+      //   await this.gitApi.installDep(repoPath)
+      //   spanner.stop()
+      // }
+
+      //  自动启动项目
+      // const pktPath = path.resolve(repoPath, 'package.json')
+      // const pkt = fse.readJSONSync(pktPath)
+      // if (!pkt) {
+      //   throw new Error('package.json 不存在')
+      // }
+      // const { dev, start } = pkt.scripts
+      // if (dev || start) {
+      //   spanner = ora('项目启动中...').start()
+      //   const type = dev ? 'dev' : 'start'
+      //   await this.gitApi.runRepo(repoPath, type)
+      //   spanner.stop()
+      // }
+      
+    } catch (error) {
+      spanner.stop()
+      printErrorLog(error)
+    }
   }
 
   async getRepositoryTag(params) {
