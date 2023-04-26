@@ -1,4 +1,5 @@
 import Command from '@e.ucli/command';
+import ora from 'ora'
 import { log, makeList, Github, Gitee, getPlatform, removeGitCacheFile, createGitCacheFile, makeInput, printErrorLog } from '@e.ucli/utils';
 
 const PLAT_GITHUB_VAL = 'github'
@@ -119,8 +120,10 @@ class InstallCommand extends Command {
 
   async doInstall(params) {
     const tag = await this.getRepositoryTag(params)
-    console.log('tag', tag)
-    return []
+    const spanner = ora('正在克隆中...').start()
+    const data = await this.gitApi.cloneRepo(this.keyword, tag)
+    spanner.stop()
+    console.log(data);
   }
 
   async getInputQuery() {
@@ -200,8 +203,8 @@ class InstallCommand extends Command {
       tags = await this.gitApi.getReposTags(keyword, { per_page: pagesize, q: `${q}+language:${language}` })
     }
     const choices = tags.map((t) => ({ name: t.name, value: t.name }))
-    
-    // Github 可分页 
+
+    // 只有Github 可分页 
     if (this.platform === PLAT_GITHUB_VAL) {
       if (this.tagsPage > 1) {
         choices.push({ name: '上一页', value: 'prev' })

@@ -58,6 +58,11 @@ class Github extends GitServer {
         //   https://api.github.com/repos/OWNER/REPO/git/tags/TAG_SHA
         return this.get(`/repos/${fullName}/tags`, params)
     }
+
+    getReposUrl(fullName) {
+        return `https://github.com/${fullName}.git`
+    }
+
 }
 
 export default Github

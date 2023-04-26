@@ -3,6 +3,7 @@ import { homedir } from 'node:os'
 import path from 'node:path'
 import { pathExistsSync } from 'path-exists'
 import fse from 'fs-extra'
+import { execa } from 'execa'
 import { makePassword } from '../index.js'
 
 const CACHE_DIR = 'ucli-cache'
@@ -68,6 +69,14 @@ class GitServer {
     savePlatform(data) {
         this.platform = data
         fse.writeFileSync(this.platformPath, data)
+    }
+
+    async cloneRepo(fullName, tag) {
+        if (tag) {
+            return await execa('git', ['clone', this.getReposUrl(fullName), '-b', tag])
+        } else {
+            return await execa('git', ['clone', this.getReposUrl(fullName), '-b'])
+        }
     }
 
 }
