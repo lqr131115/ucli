@@ -34,6 +34,7 @@ class InstallCommand extends Command {
       ['-s, --sort', '默认排序指标', 'stars'],
       ['-p, --page <number>', '默认页码', 1],
       ['-ps, --pagesize <number>', '默认页大小', 5],
+      ['-a, --auto', '是否自动安装依赖和启动项目', false],
     ]
   }
   async action([_, opts]) {
@@ -202,27 +203,17 @@ class InstallCommand extends Command {
       await this.gitApi.cloneRepo(this.keyword, tag)
       spanner.stop()
 
-      // // 自动安装依赖
-      // if (pathExistsSync) {
-      //   spanner = ora('项目依赖安装中...').start()
-      //   await this.gitApi.installDep(repoPath)
-      //   spanner.stop()
-      // }
+      if (params && params.auto) {
+        // 自动安装依赖 但过程耗时可能较长 且中断不停止安装过程
+        spanner = ora('项目依赖安装中...').start()
+        await this.gitApi.installDep(repoPath)
+        spanner.stop()
 
-      //  自动启动项目
-      // const pktPath = path.resolve(repoPath, 'package.json')
-      // const pkt = fse.readJSONSync(pktPath)
-      // if (!pkt) {
-      //   throw new Error('package.json 不存在')
-      // }
-      // const { dev, start } = pkt.scripts
-      // if (dev || start) {
-      //   spanner = ora('项目启动中...').start()
-      //   const type = dev ? 'dev' : 'start'
-      //   await this.gitApi.runRepo(repoPath, type)
-      //   spanner.stop()
-      // }
-      
+        // 自动启动项目
+        spanner = ora('项目启动中...').start()
+        await this.gitApi.runRepo(repoPath)
+        spanner.stop()
+      }
     } catch (error) {
       spanner.stop()
       printErrorLog(error)

@@ -4,7 +4,8 @@ import path from 'node:path'
 import { pathExistsSync } from 'path-exists'
 import fse from 'fs-extra'
 import { execa } from 'execa'
-import { makePassword } from '../index.js'
+import { makePassword, log } from '../index.js'
+
 
 const CACHE_DIR = 'ucli-cache'
 const TEMP_GIT = '.git'
@@ -73,9 +74,9 @@ class GitServer {
 
     async cloneRepo(fullName, tag) {
         if (tag) {
-            return await execa('git', ['clone', this.getReposUrl(fullName), '-b', tag])
+            return await execa('git', ['clone', this.getReposUrl(fullName), '-b', tag], { stdout: 'inherit' })
         } else {
-            return await execa('git', ['clone', this.getReposUrl(fullName), '-b'])
+            return await execa('git', ['clone', this.getReposUrl(fullName), '-b'],{ stdout: 'inherit' })
         }
     }
 
@@ -83,8 +84,26 @@ class GitServer {
         return await execa('npm', ['install', '--registry=http://registry.npmmirror.com'], { cwd: path, stdout: 'inherit' })
     }
 
-    async runRepo(path, type) {
-        return await execa('npm', ['run', type], { cwd: path, stdout: 'inherit' })
+    async runRepo(repoPath) {
+        const pktPath = path.resolve(repoPath, 'package.json')
+        const pkt = fse.readJSONSync(pktPath)
+        if (!pkt) {
+            throw new Error('package.json 不存在')
+        }
+        const { name, scripts, bin } = pkt
+        if (bin) {
+            await execa('npm', ['install', '-g', name, '--registry=http://registry.npmmirror.com'], { cwd: repoPath, stdout: 'inherit' })
+        }
+        if (scripts) {
+            const { dev, start } = scripts
+            if (dev) {
+                return await execa('npm', ['run', 'dev'], { cwd: repoPath, stdout: 'inherit' })
+            } else if (start) {
+                return await execa('npm', ['run', 'start'], { cwd: repoPath, stdout: 'inherit' })
+            } else {
+                log.warn('未找到启动命令 dev 或 start')
+            }
+        }
     }
 
 }
