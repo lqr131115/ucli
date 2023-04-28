@@ -1,0 +1,32 @@
+{
+  "name": "@e.ucli/lint",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "lqr131115 <1046975211@qq.com>",
+  "homepage": "https://github.com/lqr131115/ucli#readme",
+  "license": "ISC",
+  "main": "lib/lint.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lqr131115/ucli.git"
+  },
+  "scripts": {
+    "test": "node ./__tests__/lint.test.js"
+  },
+  "bugs": {
+    "url": "https://github.com/lqr131115/ucli/issues"
+  },
+  "dependencies": {
+    "@e.ucli/command": "^0.0.0",
+    "@e.ucli/utils": "^0.0.0",
+    "ora": "^6.3.0"
+  },
+  "type": "module"
+}

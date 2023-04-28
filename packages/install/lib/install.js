@@ -1,6 +1,5 @@
 import path from 'node:path';
 import ora from 'ora'
-import fse from 'fs-extra'
 import { pathExistsSync } from 'path-exists'
 import Command from '@e.ucli/command';
 import { log, makeList, Github, Gitee, getPlatform, removeGitCacheFile, createGitCacheFile, makeInput, printErrorLog } from '@e.ucli/utils';
@@ -22,7 +21,7 @@ class InstallCommand extends Command {
     super(instance);
   }
   get command() {
-    return 'install [name]';
+    return 'install';
   }
   get description() {
     return 'install registry';
@@ -37,14 +36,15 @@ class InstallCommand extends Command {
       ['-a, --auto', '是否自动安装依赖和启动项目', false],
     ]
   }
-  async action([_, opts]) {
+  async action([opts]) {
     const { reset } = opts
+    console.log(opts)
     if (reset) {
       this.resetGitApi()
     }
-    await this.initGitApi(opts)
-    await this.searchGitApi(opts)
-    await this.installRepo({ ...opts, keyword: this.keyword, q: this.q, language: this.language })
+    // await this.initGitApi(opts)
+    // await this.searchGitApi(opts)
+    // await this.installRepo({ ...opts, keyword: this.keyword, q: this.q, language: this.language })
 
   }
 

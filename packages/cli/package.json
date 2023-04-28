@@ -27,6 +27,7 @@
     "@babel/preset-env": "^7.20.2",
     "@e.ucli/init": "^0.0.0",
     "@e.ucli/install": "^0.0.0",
+    "@e.ucli/lint": "^0.0.0",
     "@e.ucli/utils": "^0.0.0",
     "commander": "^10.0.0",
     "dirname-filename-esm": "^1.1.1",
