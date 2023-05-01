@@ -8,7 +8,7 @@ if (process.argv.includes('--debug') || process.argv.includes('-d')) {
 
 log.heading = 'ucli';
 
-// success 权重2000 当debug开启 og.level = 'verbose' 时, success能被打印
+// success 权重2000  不低于log.level 即可打印
 log.addLevel('success', 2000, { fg: 'green', bold: true })
 
 export default log

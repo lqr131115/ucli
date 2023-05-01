@@ -26,7 +26,10 @@
   "dependencies": {
     "@e.ucli/command": "^0.0.0",
     "@e.ucli/utils": "^0.0.0",
-    "ora": "^6.3.0"
+    "eslint": "^8.39.0",
+    "execa": "^7.1.1",
+    "ora": "^6.3.0",
+    "path-exists": "^5.0.0"
   },
   "type": "module"
 }
