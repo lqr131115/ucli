@@ -1,11 +1,16 @@
 import path from 'node:path'
-import Command from '@e.ucli/command';
-import { log, printErrorLog } from '@e.ucli/utils';
 import { ESLint } from 'eslint'
 import { pathExistsSync } from 'path-exists'
 import { execa } from 'execa'
 import ora from 'ora'
+import jest from 'jest'
+import Mocha from 'mocha'
+import Command from '@e.ucli/command';
+import { log, printErrorLog, makeList } from '@e.ucli/utils';
 import vueConfig from './eslint/vueConfig.js';
+
+const TEST_JEST = 'jest'
+const TEST_MOCHA = 'mocha'
 
 class LintCommand extends Command {
   constructor(instance) {
@@ -24,6 +29,7 @@ class LintCommand extends Command {
   }
   async action([opts]) {
     await this.doEslint(opts)
+    await this.doTest(opts)
   }
 
   async doEslint(opts) {
@@ -57,6 +63,35 @@ class LintCommand extends Command {
     }
   }
 
+  async doTest(opts) {
+    const { vpp } = opts
+    const cwd = process.cwd()
+    const vueProjectPath = path.resolve(cwd, vpp)
+    if (!pathExistsSync(vueProjectPath)) {
+      log.error('vue项目不存在')
+      return
+    }
+    const testMode = await makeList({
+      message: '请选择测试模式',
+      choices: [
+        { name: 'jest', value: TEST_JEST },
+        { name: 'mocha', value: TEST_MOCHA },
+      ]
+    })
+
+    // TODO: 存储测试模式
+
+    if (testMode === TEST_JEST) {
+      await jest.run('test', vueProjectPath)
+      log.success('jest测试完成')
+    } else {
+      const mocha = new Mocha()
+      mocha.addFile(path.resolve(vueProjectPath, '__tests__', 'index.js'))
+      mocha.run(() => {
+        log.success('mocha测试完成')
+      })
+    }
+  }
 }
 
 export default function lint(instance) {
