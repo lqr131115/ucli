@@ -5,8 +5,8 @@ import { getLatestVersion } from './npm.js'
 import service from './request.js'
 import Gitee from './git/Gitee.js'
 import Github from './git/Github.js'
-import { initGitPlatform, initGitUser, resetGitConfig } from './git/Gitutils.js'
-import { GitServer, getToken, getPlatform, removeGitCacheFile, createGitCacheFile } from './git/GitServer.js'
+import { initGitPlatform, initGitOwner, resetGitConfig } from './git/Gitutils.js'
+import { GitServer, getToken, getPlatform, getOwner, getLogin, removeGitCacheFile, createGitCacheFile } from './git/GitServer.js'
 
 export function printErrorLog(err, type) {
   if (verify.isDebug()) {
@@ -26,9 +26,11 @@ export {
   service,
   GitServer,
   initGitPlatform,
-  initGitUser,
+  initGitOwner,
   getToken,
   getPlatform,
+  getLogin,
+  getOwner,
   removeGitCacheFile,
   createGitCacheFile,
   resetGitConfig,

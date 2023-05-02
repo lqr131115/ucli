@@ -36,7 +36,6 @@ class Github extends GitServer {
         })
     }
 
-
     // post(url, data, headers) {
     //     return this.service({
     //         url,
@@ -55,7 +54,7 @@ class Github extends GitServer {
     }
 
     getReposTags(fullName, params) {
-        //   https://api.github.com/repos/OWNER/REPO/git/tags/TAG_SHA
+        // https://api.github.com/repos/OWNER/REPO/git/tags/TAG_SHA
         return this.get(`/repos/${fullName}/tags`, params)
     }
 
@@ -63,6 +62,13 @@ class Github extends GitServer {
         return `https://github.com/${fullName}.git`
     }
 
+    getUser() {
+        return this.get('/user')
+    }
+
+    getOrgs() {
+        return this.get('/user/orgs')
+    }
 }
 
 export default Github

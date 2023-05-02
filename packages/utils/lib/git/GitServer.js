@@ -11,6 +11,8 @@ const CACHE_DIR = 'ucli-cache'
 const TEMP_GIT = '.git'
 const TEMP_TOKEN = '.token'
 const TEMP_PLATFORM = '.platform'
+const TEMP_OWNER = '.owner'
+const TEMP_LOGIN = '.login'
 
 
 function createTokenPath() {
@@ -21,6 +23,15 @@ function createPlatformPath() {
     return path.resolve(homedir(), CACHE_DIR, TEMP_GIT, TEMP_PLATFORM)
 }
 
+function createOwnerPath() {
+    return path.resolve(homedir(), CACHE_DIR, TEMP_GIT, TEMP_OWNER)
+}
+
+function createLoginPath() {
+    return path.resolve(homedir(), CACHE_DIR, TEMP_GIT, TEMP_LOGIN)
+}
+
+
 function removeGitCacheFile() {
     fse.removeSync(path.resolve(homedir(), CACHE_DIR, TEMP_GIT))
 }
@@ -28,11 +39,19 @@ function removeGitCacheFile() {
 function createGitCacheFile() {
     const tokenPath = createTokenPath()
     const platformPath = createPlatformPath()
+    const ownerPath = createOwnerPath()
+    const loginPath = createLoginPath()
     if (!pathExistsSync(tokenPath)) {
         fse.createFileSync(tokenPath)
     }
     if (!pathExistsSync(platformPath)) {
         fse.createFileSync(platformPath)
+    }
+    if (!pathExistsSync(ownerPath)) {
+        fse.createFileSync(ownerPath)
+    }
+    if (!pathExistsSync(loginPath)) {
+        fse.createFileSync(loginPath)
     }
 }
 
@@ -44,10 +63,20 @@ function getToken(filepath = createTokenPath()) {
     return pathExistsSync(filepath) ? fse.readFileSync(filepath, 'utf-8') : ''
 }
 
+function getOwner(filepath = createOwnerPath()) {
+    return pathExistsSync(filepath) ? fse.readFileSync(filepath, 'utf-8') : ''
+}
+
+function getLogin(filepath = createLoginPath()) {
+    return pathExistsSync(filepath) ? fse.readFileSync(filepath, 'utf-8') : ''
+}
+
 class GitServer {
     constructor() {
         this.tokenPath = createTokenPath()
         this.platformPath = createPlatformPath()
+        this.ownerPath = createOwnerPath()
+        this.loginPath = createLoginPath()
     }
 
     async init() {
@@ -75,12 +104,20 @@ class GitServer {
         this.platform = data
         fse.writeFileSync(this.platformPath, data)
     }
+    saveOwner(data) {
+        this.platform = data
+        fse.writeFileSync(this.ownerPath, data)
+    }
+    saveLogin(data) {
+        this.platform = data
+        fse.writeFileSync(this.loginPath, data)
+    }
 
     async cloneRepo(fullName, tag) {
         if (tag) {
             return await execa('git', ['clone', this.getReposUrl(fullName), '-b', tag], { stdout: 'inherit' })
         } else {
-            return await execa('git', ['clone', this.getReposUrl(fullName), '-b'],{ stdout: 'inherit' })
+            return await execa('git', ['clone', this.getReposUrl(fullName), '-b'], { stdout: 'inherit' })
         }
     }
 
@@ -110,12 +147,22 @@ class GitServer {
         }
     }
 
+    getUser() {
+        throw new Error('请实现getUser方法')
+    }
+
+    getOrgs() {
+        throw new Error('请实现getOrgs方法')
+    }
+
 }
 
 export {
     GitServer,
     getToken,
     getPlatform,
+    getOwner,
+    getLogin,
     removeGitCacheFile,
     createGitCacheFile
 };

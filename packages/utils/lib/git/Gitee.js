@@ -57,6 +57,14 @@ class Gitee extends GitServer {
         return `https://gitee.com/${fullName}.git`
     }
 
+    getUser(){
+        return this.get(`/user`)
+    }
+
+    getOrgs(params){
+        return this.get('/user/orgs', params)
+    }
+
 }
 
 export default Gitee

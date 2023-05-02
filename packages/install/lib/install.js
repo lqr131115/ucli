@@ -36,7 +36,7 @@ class InstallCommand extends Command {
       ['-a, --auto', '是否自动安装依赖和启动项目', false],
     ]
   }
-  
+
   async action([opts]) {
     if (opts && opts.reset) {
       resetGitConfig()
@@ -49,16 +49,14 @@ class InstallCommand extends Command {
   async initGitApi(opts) {
 
     let mode = SEARCH_MODE_PROP
-    let platform = getPlatform()
-    if (!platform) {
-      if (!opts?.reset) {
-        resetGitConfig()
-      }
-      this.gitApi = await initGitPlatform()
+    const platform = getPlatform()
+    if (!platform && opts?.reset) {
+      resetGitConfig()
     }
+    this.gitApi = await initGitPlatform(platform)
+    this.platform = platform || getPlatform()
 
-    platform = getPlatform()
-    if (platform === PLAT_GITHUB) {
+    if (this.platform === PLAT_GITHUB) {
       mode = await makeList({
         choices: [{ name: '仓库', value: SEARCH_MODE_PROP }, { name: '源码', value: SEARCH_MODE_CODE }],
         message: '请选择搜索模式'
@@ -66,7 +64,6 @@ class InstallCommand extends Command {
     }
 
     this.mode = mode
-    this.platform = platform
     this.searchPage = opts.page || 1
     this.tagsPage = opts.page || 1
   }

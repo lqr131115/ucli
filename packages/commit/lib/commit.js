@@ -1,5 +1,5 @@
 import Command from '@e.ucli/command';
-import { getPlatform, initGitPlatform, resetGitConfig } from '@e.ucli/utils';
+import { getPlatform, initGitPlatform, resetGitConfig, initGitOwner, log } from '@e.ucli/utils';
 
 class CommitCommand extends Command {
   constructor(instance) {
@@ -24,13 +24,15 @@ class CommitCommand extends Command {
   }
 
   async createRemoteRepo(opts) {
-    let platform = getPlatform()
-    if (!platform) {
-      if (!opts?.reset) {
-        resetGitConfig()
-      }
-      this.gitApi = await initGitPlatform()
+    const platform = getPlatform()
+    if (!platform && opts?.reset) {
+      resetGitConfig()
     }
+    this.gitApi = await initGitPlatform(platform)
+    this.platform = getPlatform()
+
+    this.gitLogin = await initGitOwner(this.gitApi)
+    log.verbose('gitLogin', this.gitLogin)
   }
 }
 
