@@ -40,6 +40,10 @@ function getPlatform(filepath = createPlatformPath()) {
     return pathExistsSync(filepath) ? fse.readFileSync(filepath, 'utf-8') : ''
 }
 
+function getToken(filepath = createTokenPath()) {
+    return pathExistsSync(filepath) ? fse.readFileSync(filepath, 'utf-8') : ''
+}
+
 class GitServer {
     constructor() {
         this.tokenPath = createTokenPath()
@@ -110,6 +114,7 @@ class GitServer {
 
 export {
     GitServer,
+    getToken,
     getPlatform,
     removeGitCacheFile,
     createGitCacheFile

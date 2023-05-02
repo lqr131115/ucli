@@ -1,5 +1,5 @@
 import Command from '@e.ucli/command';
-import { log } from '@e.ucli/utils';
+import { getPlatform, initGitPlatform, resetGitConfig } from '@e.ucli/utils';
 
 class CommitCommand extends Command {
   constructor(instance) {
@@ -13,13 +13,25 @@ class CommitCommand extends Command {
   }
   get options() {
     return [
-      ['-f, --force', 'force', false],
+      ['-r, --reset', '是否重置平台配置', false],
     ];
   }
-  async action() {
-    log.success('commit action')
+  async action([opts]) {
+    if (opts && opts.reset) {
+      resetGitConfig()
+    }
+    await this.createRemoteRepo(opts)
   }
 
+  async createRemoteRepo(opts) {
+    let platform = getPlatform()
+    if (!platform) {
+      if (!opts?.reset) {
+        resetGitConfig()
+      }
+      this.gitApi = await initGitPlatform()
+    }
+  }
 }
 
 export default function commit(instance) {
