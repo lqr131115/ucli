@@ -1,5 +1,6 @@
-import { GitServer } from "./GitServer.js";
 import axois from 'axios'
+import { C } from '../index.js'
+import { GitServer } from "./GitServer.js";
 
 const BASE_URL = 'https://gitee.com/api/v5'
 
@@ -69,11 +70,11 @@ class Gitee extends GitServer {
     }
 
     createRepo(data) {
-        // if (this.owner === 'user') {
-        //     return this.post(`/user/repos`, data)
-        // } else {
-        //     return this.post(`/orgs/${this.login}/repos`, data)
-        // }
+        if (this.owner === C.OWNER_USER) {
+            return this.post(`/user/repos`, data)
+        } else {
+            return this.post(`/orgs/${this.login}/repos`, data)
+        }
     }
 }
 

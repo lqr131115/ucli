@@ -1,7 +1,7 @@
 
 import path from 'node:path'
 import { homedir } from 'node:os'
-import { log, makeList, makeInput, getLatestVersion, service, printErrorLog } from '@e.ucli/utils'
+import { log, makeList, makeInput, getLatestVersion, service, printErrorLog, C } from '@e.ucli/utils'
 
 const ADD_TYPE_PROJECT = 'project';
 const ADD_TYPE_PAGE = 'page';
@@ -15,7 +15,6 @@ const ADD_TYPE = [
         value: ADD_TYPE_PAGE,
     }
 ];
-const CACHE_DIR = 'ucli-cache';
 // const ADD_TEMPLATE = [
 //     {
 //         "name": "vue3项目模板",
@@ -67,7 +66,7 @@ function getAddTeam(teamList) {
 
 // 安装缓存目录
 function makeTargetPath() {
-    return path.resolve(homedir(), CACHE_DIR, 'template')
+    return path.resolve(homedir(), C.CACHE_DIR, 'template')
 }
 
 async function getTemplateFromAPI() {

@@ -4,10 +4,9 @@ import path from 'node:path'
 import { pathExistsSync } from 'path-exists'
 import fse from 'fs-extra'
 import { execa } from 'execa'
-import { makePassword, log } from '../index.js'
+import { makePassword, log, C } from '../index.js'
 
 
-const CACHE_DIR = 'ucli-cache'
 const TEMP_GIT = '.git'
 const TEMP_TOKEN = '.token'
 const TEMP_PLATFORM = '.platform'
@@ -16,24 +15,24 @@ const TEMP_LOGIN = '.login'
 
 
 function createTokenPath() {
-    return path.resolve(homedir(), CACHE_DIR, TEMP_GIT, TEMP_TOKEN)
+    return path.resolve(homedir(), C.CACHE_DIR, TEMP_GIT, TEMP_TOKEN)
 }
 
 function createPlatformPath() {
-    return path.resolve(homedir(), CACHE_DIR, TEMP_GIT, TEMP_PLATFORM)
+    return path.resolve(homedir(), C.CACHE_DIR, TEMP_GIT, TEMP_PLATFORM)
 }
 
 function createOwnerPath() {
-    return path.resolve(homedir(), CACHE_DIR, TEMP_GIT, TEMP_OWNER)
+    return path.resolve(homedir(), C.CACHE_DIR, TEMP_GIT, TEMP_OWNER)
 }
 
 function createLoginPath() {
-    return path.resolve(homedir(), CACHE_DIR, TEMP_GIT, TEMP_LOGIN)
+    return path.resolve(homedir(), C.CACHE_DIR, TEMP_GIT, TEMP_LOGIN)
 }
 
 
 function removeGitCacheFile() {
-    fse.removeSync(path.resolve(homedir(), CACHE_DIR, TEMP_GIT))
+    fse.removeSync(path.resolve(homedir(), C.CACHE_DIR, TEMP_GIT))
 }
 
 function createGitCacheFile() {

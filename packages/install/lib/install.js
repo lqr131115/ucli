@@ -2,16 +2,13 @@ import path from 'node:path';
 import ora from 'ora'
 import { pathExistsSync } from 'path-exists'
 import Command from '@e.ucli/command';
-import { log, makeList, getPlatform, resetGitConfig, makeInput, printErrorLog, initGitPlatform } from '@e.ucli/utils';
-
-const PLAT_GITHUB = 'github'
-const PLAT_GITEE = 'gitee'
-
-const SEARCH_MODE_PROP = 'repositories'
-const SEARCH_MODE_CODE = 'code'
+import { log, makeList, getPlatform, resetGitConfig, makeInput, printErrorLog, initGitPlatform,C } from '@e.ucli/utils';
 
 // TODO: 根据总数量计算页数，先给默认值10
 const TOTAL_PAGE = 10
+
+const SEARCH_MODE_PROP = 'repositories'
+const SEARCH_MODE_CODE = 'code'
 
 const GITEE_LANGUAGES = ['Java', 'JavaScript', 'TypeScript', 'HTML', 'CSS']
 const GITHUB_LANGUAGES = ['java', 'javascript', 'typeScript', 'html', 'css']
@@ -55,7 +52,7 @@ class InstallCommand extends Command {
     }
     this.gitApi = await initGitPlatform()
     this.platform = this.gitApi.platform
-    if (this.platform === PLAT_GITHUB) {
+    if (this.platform === C.PLAT_GITHUB) {
       mode = await makeList({
         choices: [{ name: '仓库', value: SEARCH_MODE_PROP }, { name: '源码', value: SEARCH_MODE_CODE }],
         message: '请选择搜索模式'
@@ -111,10 +108,10 @@ class InstallCommand extends Command {
 
   async getInputQuery() {
     let q, language, choices = [];
-    if (this.platform === PLAT_GITEE) {
+    if (this.platform === C.PLAT_GITEE) {
       choices = GITEE_LANGUAGES.map((lan) => ({ name: lan, value: lan }))
     }
-    else if (this.platform === PLAT_GITHUB) {
+    else if (this.platform === C.PLAT_GITHUB) {
       choices = GITHUB_LANGUAGES.map((lan) => ({ name: lan, value: lan }))
     }
     try {
@@ -139,14 +136,14 @@ class InstallCommand extends Command {
 
   async doSearchRepositories(params) {
     const { sort, pagesize, q, language } = params
-    if (this.platform === PLAT_GITEE) {
+    if (this.platform === C.PLAT_GITEE) {
       params = { ...params, sort: `${sort}_count`, per_page: pagesize }
     }
-    else if (this.platform === PLAT_GITHUB) {
+    else if (this.platform === C.PLAT_GITHUB) {
       params = { ...params, per_page: pagesize, q: `${q}+language:${language}` }
     }
     let searchResult = await this.gitApi.searchRepositories(params)
-    if (this.platform === PLAT_GITHUB) {
+    if (this.platform === C.PLAT_GITHUB) {
       searchResult = searchResult.items
     }
     return searchResult.map(item => {
@@ -159,11 +156,11 @@ class InstallCommand extends Command {
 
   async doSearchCode(params) {
     const { pagesize, q, language } = params
-    if (this.platform === PLAT_GITHUB) {
+    if (this.platform === C.PLAT_GITHUB) {
       params = { ...params, per_page: pagesize, q: `${q}+language:${language}` }
     }
     let searchResult = await this.gitApi.searchCode(params)
-    if (this.platform === PLAT_GITHUB) {
+    if (this.platform === C.PLAT_GITHUB) {
       searchResult = searchResult.items
     }
 
@@ -209,16 +206,16 @@ class InstallCommand extends Command {
 
     let tags;
     const { keyword, pagesize, q, language } = params
-    if (this.platform === PLAT_GITEE) {
+    if (this.platform === C.PLAT_GITEE) {
       tags = await this.gitApi.getReposTags(keyword)
     }
-    else if (this.platform === PLAT_GITHUB) {
+    else if (this.platform === C.PLAT_GITHUB) {
       tags = await this.gitApi.getReposTags(keyword, { per_page: pagesize, q: `${q}+language:${language}` })
     }
     const choices = tags.map((t) => ({ name: t.name, value: t.name }))
 
     // 只有Github 可分页 
-    if (this.platform === PLAT_GITHUB) {
+    if (this.platform === C.PLAT_GITHUB) {
       if (this.tagsPage > 1) {
         choices.push({ name: '上一页', value: 'prev' })
       }

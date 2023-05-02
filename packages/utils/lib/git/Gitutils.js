@@ -1,16 +1,11 @@
 import path from 'node:path'
 import fse from 'fs-extra'
-import { printErrorLog } from "../index.js";
+import { printErrorLog, C } from "../index.js";
 import { makeList, makeInput } from "../inquirer.js";
 import { removeGitCacheFile, createGitCacheFile, getPlatform, getOwner, getLogin } from "./GitServer.js";
 import Gitee from "./Gitee.js";
 import Github from "./Github.js";
 
-const PLAT_GITHUB = 'github'
-const PLAT_GITEE = 'gitee'
-
-const OWNER_USER = 'user'
-const OWNER_ORGS = 'orgs'
 
 
 export async function resetGitConfig() {
@@ -23,14 +18,14 @@ export async function initGitPlatform() {
     let platform = getPlatform()
     if (!platform) {
         platform = await makeList({
-            choices: [{ name: 'Github', value: PLAT_GITHUB }, { name: 'Gitee', value: PLAT_GITEE }],
+            choices: [{ name: 'Github', value: C.PLAT_GITHUB }, { name: 'Gitee', value: C.PLAT_GITEE }],
             message: '请选择平台'
         })
     }
-    if (platform === PLAT_GITHUB) {
+    if (platform === C.PLAT_GITHUB) {
         gitApi = new Github()
     }
-    if (platform === PLAT_GITEE) {
+    if (platform === C.PLAT_GITEE) {
         gitApi = new Gitee()
     }
 
@@ -49,10 +44,10 @@ export async function initGitOwner(gitApi) {
         if (!gitOwner) {
             gitOwner = await makeList({
                 message: '请选择仓库所属',
-                choices: [{ name: '个人', value: OWNER_USER }, { name: '组织', value: OWNER_ORGS }]
+                choices: [{ name: '个人', value: C.OWNER_USER }, { name: '组织', value: C.OWNER_ORGS }]
             })
         }
-        if (gitOwner === OWNER_USER) {
+        if (gitOwner === C.OWNER_USER) {
             gitLogin = user?.login
         } else {
             const orgsList = org?.map(item => ({ name: item.name, value: item.login }))
