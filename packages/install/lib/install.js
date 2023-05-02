@@ -42,8 +42,8 @@ class InstallCommand extends Command {
       resetGitConfig()
     }
     await this.initGitApi(opts)
-    await this.searchGitApi(opts)
-    await this.installRepo({ ...opts, keyword: this.keyword, q: this.q, language: this.language })
+    // await this.searchGitApi(opts)
+    // await this.installRepo({ ...opts, keyword: this.keyword, q: this.q, language: this.language })
   }
 
   async initGitApi(opts) {
@@ -53,9 +53,8 @@ class InstallCommand extends Command {
     if (!platform && opts?.reset) {
       resetGitConfig()
     }
-    this.gitApi = await initGitPlatform(platform)
-    this.platform = platform || getPlatform()
-
+    this.gitApi = await initGitPlatform()
+    this.platform = this.gitApi.platform
     if (this.platform === PLAT_GITHUB) {
       mode = await makeList({
         choices: [{ name: '仓库', value: SEARCH_MODE_PROP }, { name: '源码', value: SEARCH_MODE_CODE }],

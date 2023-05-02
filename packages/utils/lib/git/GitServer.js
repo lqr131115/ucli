@@ -105,11 +105,11 @@ class GitServer {
         fse.writeFileSync(this.platformPath, data)
     }
     saveOwner(data) {
-        this.platform = data
+        this.owner = data
         fse.writeFileSync(this.ownerPath, data)
     }
     saveLogin(data) {
-        this.platform = data
+        this.login = data
         fse.writeFileSync(this.loginPath, data)
     }
 
@@ -153,6 +153,10 @@ class GitServer {
 
     getOrgs() {
         throw new Error('请实现getOrgs方法')
+    }
+
+    createRepo() {
+        throw new Error('请实现createRepo方法')
     }
 
 }

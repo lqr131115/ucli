@@ -5,7 +5,7 @@ import { getLatestVersion } from './npm.js'
 import service from './request.js'
 import Gitee from './git/Gitee.js'
 import Github from './git/Github.js'
-import { initGitPlatform, initGitOwner, resetGitConfig } from './git/Gitutils.js'
+import { initGitPlatform, initGitOwner, resetGitConfig ,createGitRepo} from './git/Gitutils.js'
 import { GitServer, getToken, getPlatform, getOwner, getLogin, removeGitCacheFile, createGitCacheFile } from './git/GitServer.js'
 
 export function printErrorLog(err, type) {
@@ -27,6 +27,7 @@ export {
   GitServer,
   initGitPlatform,
   initGitOwner,
+  createGitRepo,
   getToken,
   getPlatform,
   getLogin,

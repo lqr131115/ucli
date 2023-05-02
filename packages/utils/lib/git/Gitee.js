@@ -36,14 +36,17 @@ class Gitee extends GitServer {
         })
     }
 
-    // post(url, data, headers) {
-    //     return this.service({
-    //         url,
-    //         data,
-    //         headers,
-    //         method: 'post'
-    //     })
-    // }
+    post(url, data, headers) {
+        return this.service({
+            url,
+            data: {
+                ...data,
+                access_token: this.token,
+            },
+            headers,
+            method: 'post'
+        })
+    }
 
     searchRepositories(params) {
         return this.get('/search/repositories', params)
@@ -57,14 +60,21 @@ class Gitee extends GitServer {
         return `https://gitee.com/${fullName}.git`
     }
 
-    getUser(){
+    getUser() {
         return this.get(`/user`)
     }
 
-    getOrgs(params){
+    getOrgs(params) {
         return this.get('/user/orgs', params)
     }
 
+    createRepo(data) {
+        // if (this.owner === 'user') {
+        //     return this.post(`/user/repos`, data)
+        // } else {
+        //     return this.post(`/orgs/${this.login}/repos`, data)
+        // }
+    }
 }
 
 export default Gitee

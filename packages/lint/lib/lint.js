@@ -24,7 +24,7 @@ class LintCommand extends Command {
   }
   get options() {
     return [
-      ['-vpp, --vpp <string>', 'vue项目路径(vueProjectPath)', '../eslint-test'],
+      ['-vpp, --vpp <string>', 'vue项目路径(vueProjectPath)', ''],
     ];
   }
   async action([opts]) {

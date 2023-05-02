@@ -36,14 +36,14 @@ class Github extends GitServer {
         })
     }
 
-    // post(url, data, headers) {
-    //     return this.service({
-    //         url,
-    //         data,
-    //         headers,
-    //         method: 'post'
-    //     })
-    // }
+    post(url, data, headers) {
+        return this.service({
+            url,
+            data,
+            headers,
+            method: 'post'
+        })
+    }
 
     searchRepositories(params) {
         return this.get('/search/repositories', params)

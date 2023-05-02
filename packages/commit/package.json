@@ -26,6 +26,7 @@
   "type": "module",
   "dependencies": {
     "@e.ucli/command": "^0.0.0",
-    "@e.ucli/utils": "^0.0.0"
+    "@e.ucli/utils": "^0.0.0",
+    "fs-extra": "^11.1.1"
   }
 }
