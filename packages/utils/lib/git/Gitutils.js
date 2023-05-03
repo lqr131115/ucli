@@ -96,9 +96,10 @@ export async function createGitRepo(gitApi) {
     const exist = await gitApi.getRepo(getLogin(), name)
     if (exist) {
         log.info('远程仓库已存在')
-        return
+    } else {
+        await gitApi.createRepo({ name, description })
     }
-    await gitApi.createRepo({ name, description })
+    return { ...pkt, name, description }
 }
 
 export async function createGitIgnoreFile() {

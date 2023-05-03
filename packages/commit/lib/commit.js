@@ -1,5 +1,8 @@
+import path from 'node:path'
+import fs from 'node:fs'
+import SimpleGit from 'simple-git'
 import Command from '@e.ucli/command';
-import { getPlatform, initGitPlatform, resetGitConfig, initGitOwner, createGitRepo, createGitIgnoreFile } from '@e.ucli/utils';
+import { getPlatform, initGitPlatform, resetGitConfig, initGitOwner, createGitRepo, createGitIgnoreFile, getLogin, log } from '@e.ucli/utils';
 
 class CommitCommand extends Command {
   constructor(instance) {
@@ -21,6 +24,7 @@ class CommitCommand extends Command {
       resetGitConfig()
     }
     await this.createRemoteRepo(opts)
+    await this.initLocal(opts)
   }
 
   async createRemoteRepo(opts) {
@@ -30,8 +34,29 @@ class CommitCommand extends Command {
     }
     this.gitApi = await initGitPlatform()
     await initGitOwner(this.gitApi)
-    await createGitRepo(this.gitApi)
+    this.pkt = await createGitRepo(this.gitApi)
     await createGitIgnoreFile()
+  }
+
+  async initLocal(opts) {
+    const remoteUrl = this.gitApi.getReposUrl(`${getLogin()}/${this.pkt.name}`)
+    this.git2 = SimpleGit(process.cwd())
+
+    const gitDir = path.resolve(process.cwd(), '.git')
+    if (!fs.existsSync(gitDir)) {
+      await this.git2.init()
+      log.success('git init success')
+    }
+    const remotes = await this.git2.getRemotes()
+    if (!(~remotes.findIndex(item => item.name === 'origin'))) {
+      await this.git2.addRemote('origin', remoteUrl)
+    }
+
+    const status = await this.git2.status()
+
+    await this.git2.pull('origin', 'master').catch((err) => {
+      log.error(err)
+    })
   }
 }
 
