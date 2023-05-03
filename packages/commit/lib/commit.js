@@ -66,9 +66,10 @@ class CommitCommand extends Command {
   }
 
   async checkNotCommitted() {
+    log.info('检查 not committed')
     const status = await this.git2.status()
-    const { not_added } = status
-    if (not_added.length) {
+    const { modified } = status
+    if (modified && modified.length) {
       await this.git2.add('.')
     }
     const message = await makeInput({
@@ -84,6 +85,7 @@ class CommitCommand extends Command {
   }
 
   async checkOriginMasterExisted() {
+    log.info('检查 origin master existed')
     // 等价于执行 git ls-remote --refs
     const tags = await this.git2.listRemote(['--refs'])
     if (~tags.indexOf('refs/heads/master')) {
@@ -99,6 +101,9 @@ class CommitCommand extends Command {
 
   async commit() {
     await this.genCurrentVersion()
+    await this.checkStash()
+    await this.checkConflicted()
+    await this.checkNotCommitted()
   }
 
   async genCurrentVersion() {
@@ -134,7 +139,7 @@ class CommitCommand extends Command {
         ]
       })
       const incVersion = semver.inc(releaseVersion, incType)
-      this.branch = `release/${incVersion}`
+      this.branch = `dev/${incVersion}`
       this.pkt = { ...this.pkt, version: incVersion }
       this.syncVersion2PackageJSON()
     }
@@ -157,6 +162,24 @@ class CommitCommand extends Command {
     }).filter(_ => _).sort((v1, v2) => (semver.gt(v1, v2) ? -1 : 1))
   }
 
+  async checkStash() {
+    log.info('检查 stash')
+    const stash = await this.git2.stashList()
+    const { all } = stash
+    if (all && all.length) {
+      await this.git2.stash(['pop'])
+      log.success('stash pop success')
+    }
+  }
+
+  async checkConflicted() {
+    log.info('检查 conflicted')
+    const status = await this.git2.status()
+    const { conflicted } = status
+    if (conflicted && conflicted.length) {
+      throw new Error('存在冲突文件，请手动解决后再提交')
+    }
+  }
   syncVersion2PackageJSON() {
     const dir = process.cwd()
     const pktPath = path.resolve(dir, 'package.json')
