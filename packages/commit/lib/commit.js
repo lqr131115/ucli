@@ -19,6 +19,7 @@ class CommitCommand extends Command {
   get options() {
     return [
       ['-r, --reset', '是否重置平台配置', false],
+      ['-p, --publish', '是否发布', false],
     ];
   }
   async action([opts]) {
@@ -27,6 +28,12 @@ class CommitCommand extends Command {
     }
     await this.createRemoteRepo(opts)
     await this.initLocal()
+    await this.commit()
+
+    if (opts && opts.publish) {
+      await this.publish()
+    }
+
   }
 
   async createRemoteRepo(opts) {
@@ -49,8 +56,6 @@ class CommitCommand extends Command {
       log.success('git init')
     }
     await this.addRemoteMap()
-
-    await this.commit()
   }
 
   async addRemoteMap() {
@@ -71,17 +76,18 @@ class CommitCommand extends Command {
     const { modified } = status
     if (modified && modified.length) {
       await this.git2.add('.')
-    }
-    const message = await makeInput({
-      message: '请输入提交信息',
-      validate: (v) => {
-        if (!v) {
-          return '提交信息不能为空'
+      const message = await makeInput({
+        message: '请输入提交信息',
+        validate: (v) => {
+          if (!v) {
+            return '提交信息不能为空'
+          }
+          return true
         }
-        return true
-      }
-    })
-    await this.git2.commit(message)
+      })
+      await this.git2.commit(message)
+    }
+
   }
 
   async checkOriginMasterExisted() {
@@ -89,14 +95,49 @@ class CommitCommand extends Command {
     // 等价于执行 git ls-remote --refs
     const tags = await this.git2.listRemote(['--refs'])
     if (~tags.indexOf('refs/heads/master')) {
-      await this.git2.pull('origin', 'master').catch((err) => {
-        log.error('git pull err', err.message)
-      })
+      await this.git2.clean('f', ['-d'])
+      await this.pullRemoteBranch('master', { '--allow-unrelated-histories': null })
     } else {
-      await this.git2.push('origin', 'master').catch((err) => {
-        log.error('git push err', err.message)
-      })
+      await this.pushRemoteBranch('master')
     }
+  }
+
+
+  async publish() {
+    await this.checkTag()
+    await this.checkoutBranch('master')
+    await this.mergeBranchToMaster()
+    await this.pushRemoteBranch('master')
+    await this.deleteLocalBranch()
+    await this.deleteRemoteBranch()
+  }
+
+  async deleteLocalBranch() {
+    log.info(`删除本地${this.branch}分支`)
+    await this.git2.deleteLocalBranch(this.branch)
+  }
+
+  async deleteRemoteBranch() {
+    log.info(`删除远程${this.branch}分支`)
+    await this.git2.push(['origin', '--delete', this.branch])
+  }
+
+  async mergeBranchToMaster() {
+    await this.git2.mergeFromTo(this.branch, 'master')
+  }
+
+  async checkTag() {
+    const tag = `release/${this.pkt.version}`
+    const list = await this.getBranchList('release')
+    if (~list.indexOf(this.pkt.version)) {
+      await this.git2.push('origin', `:refs/tags/${tag}`)
+    }
+    const localTags = await this.git2.tags()
+    if (~localTags.all.indexOf(tag)) {
+      await this.git2.tag(['-d', tag])
+    }
+    await this.git2.addTag(tag)
+    await this.git2.pushTags('origin')
   }
 
   async commit() {
@@ -104,6 +145,38 @@ class CommitCommand extends Command {
     await this.checkStash()
     await this.checkConflicted()
     await this.checkNotCommitted()
+    await this.checkoutBranch(this.branch)
+    await this.pullRemoteMasterAndBranch()
+    await this.pushRemoteBranch(this.branch)
+  }
+
+  async pullRemoteMasterAndBranch() {
+    log.info(`同步 远程master 和 ${this.branch} 分支`)
+    await this.pullRemoteBranch('master')
+
+    const list = await this.getBranchList()
+    if (~list.indexOf(this.pkt.version)) {
+      log.info(`同步 远程${this.branch}和 ${this.branch} 分支`)
+      await this.pullRemoteBranch(this.branch)
+    } else {
+      log.warn(`远程${this.branch}分支不存在`)
+    }
+  }
+
+  async pullRemoteBranch(branch, options) {
+    log.info(`拉取${branch}分支`)
+    await this.git2.pull('origin', branch, options).catch((err) => {
+      log.error('git pull err', err.message)
+      process.exit(0)
+    })
+  }
+
+  async pushRemoteBranch(branch) {
+    log.info(`推送${branch}分支`)
+    await this.git2.push('origin', branch).catch((err) => {
+      log.error('git push err', err.message)
+      process.exit(0)
+    })
   }
 
   async genCurrentVersion() {
@@ -116,10 +189,10 @@ class CommitCommand extends Command {
     if (!releaseVersion) {
       this.branch = `dev/${devVersion}`
     } else if (semver.gte(devVersion, releaseVersion)) {
-      log.info(`本地版本大于线上最新版本 (${devVersion} >= ${releaseVersion})`)
+      log.info(`本地版本大于线上最新版本 (${devVersion} > ${releaseVersion})`)
       this.branch = `dev/${devVersion}`
     } else {
-      log.info(`本地版本小于线上最新版本 (${devVersion} < ${releaseVersion}))`)
+      log.info(`本地版本小于线上最新版本 (${devVersion} <= ${releaseVersion}))`)
       const incType = await makeList({
         message: '请选择版本升级类型',
         defaultValue: 'patch',
@@ -180,6 +253,20 @@ class CommitCommand extends Command {
       throw new Error('存在冲突文件，请手动解决后再提交')
     }
   }
+
+  async checkoutBranch(branchName) {
+    log.info('checkout branch')
+    const branch = await this.git2.branchLocal()
+    const { all } = branch
+    if (all && all.length) {
+      if (~all.findIndex((item) => item === branchName)) {
+        await this.git2.checkout(branchName)
+      } else {
+        await this.git2.checkoutLocalBranch(branchName)
+      }
+    }
+  }
+
   syncVersion2PackageJSON() {
     const dir = process.cwd()
     const pktPath = path.resolve(dir, 'package.json')
