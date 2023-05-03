@@ -1,7 +1,8 @@
 import path from 'node:path'
 import fse from 'fs-extra'
 import { printErrorLog, C } from "../index.js";
-import { makeList, makeInput } from "../inquirer.js";
+import log from '../log.js'
+import { makeList, makeInput, makeCheckbox } from "../inquirer.js";
 import { removeGitCacheFile, createGitCacheFile, getPlatform, getOwner, getLogin } from "./GitServer.js";
 import Gitee from "./Gitee.js";
 import Github from "./Github.js";
@@ -92,5 +93,21 @@ export async function createGitRepo(gitApi) {
     const dir = process.cwd()
     const pkt = fse.readJSONSync(path.resolve(dir, 'package.json'))
     const { name, description } = await getInputParameter(pkt)
+    const exist = await gitApi.getRepo(getLogin(), name)
+    if (exist) {
+        log.info('远程仓库已存在')
+        return
+    }
     await gitApi.createRepo({ name, description })
+}
+
+export async function createGitIgnoreFile() {
+    const gitIgnorePath = path.resolve(process.cwd(), '.gitignore')
+    if (!fse.pathExistsSync(gitIgnorePath)) {
+        let data = await makeCheckbox({
+            message: '请选择需要忽略的文件',
+            choices: ["node_modules", "dist"]
+        })
+        fse.writeFileSync(gitIgnorePath, data.join('\n'))
+    }
 }

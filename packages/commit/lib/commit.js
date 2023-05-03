@@ -1,5 +1,5 @@
 import Command from '@e.ucli/command';
-import { getPlatform, initGitPlatform, resetGitConfig, initGitOwner, log, createGitRepo } from '@e.ucli/utils';
+import { getPlatform, initGitPlatform, resetGitConfig, initGitOwner, createGitRepo, createGitIgnoreFile } from '@e.ucli/utils';
 
 class CommitCommand extends Command {
   constructor(instance) {
@@ -29,8 +29,9 @@ class CommitCommand extends Command {
       resetGitConfig()
     }
     this.gitApi = await initGitPlatform()
-    this.gitLogin = await initGitOwner(this.gitApi)
-    this.repo = await createGitRepo(this.gitApi)
+    await initGitOwner(this.gitApi)
+    await createGitRepo(this.gitApi)
+    await createGitIgnoreFile()
   }
 }
 

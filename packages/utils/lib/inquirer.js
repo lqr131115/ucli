@@ -23,7 +23,7 @@ function make({
         pageSize,
         loop,
     }
-    if (type === 'list') {
+    if (type === 'list' || type === 'checkbox') {
         options.choices = choices;
     }
     return inquirer.prompt(options).then(answers => answers.name);
@@ -39,4 +39,8 @@ export function makeInput(params) {
 
 export function makePassword(params) {
     return make({ ...params, type: 'password' });
+}
+
+export function makeCheckbox(params) {
+    return make({ ...params, type: 'checkbox' });
 }

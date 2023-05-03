@@ -69,6 +69,12 @@ class Gitee extends GitServer {
         return this.get('/user/orgs', params)
     }
 
+    getRepo(login, repo) {
+        return this.get(`/repos/${login}/${repo}`).catch(() =>{
+            return null
+        })
+    }
+
     createRepo(data) {
         if (this.owner === C.OWNER_USER) {
             return this.post(`/user/repos`, data)
